@@ -23,15 +23,15 @@ io.on('connection', (socket) => {
         if (!isRealString(params.name) || !isRealString(params.room)){
             return callback('Name and room name are required.');
         }
-
-        socket.join(params.room);
+        var room = (params.room).toLowerCase();
+        socket.join(room);
         users.removeUser(socket.id);
-        users.addUser(socket.id, params.name, params.room);
+        users.addUser(socket.id, params.name, room);
 
-        io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+        io.to(room).emit('updateUserList', users.getUserList(room));
 
         socket.emit('newMessage', generateMessage("Admin", "Welcome to the chat app"));
-        socket.broadcast.to(params.room).emit('newMessage',
+        socket.broadcast.to(room).emit('newMessage',
             generateMessage("Admin", `${params.name} has joined.`));
         callback();
     });
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
     socket.on('createMessage', (message, callback) => {
         var user = users.getUser(socket.id);
         if(user && isRealString(message.text)) {
-            io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+            io.to((user.room).toLowerCase()).emit('newMessage', generateMessage(user.name, message.text));
         }
 
         callback();
@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
     socket.on('createLocationMessage', (coords) => {
         var user = users.getUser(socket.id);
         if(user){
-            io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name,
+            io.to((user.room).toLowerCase()).emit('newLocationMessage', generateLocationMessage(user.name,
             coords.latitude, coords.longitude));
         }
     });
@@ -57,12 +57,12 @@ io.on('connection', (socket) => {
         var user = users.removeUser(socket.id);
 
         if(user) {
-            io.to(user.room).emit('updateUserList', users.getUserList(user.room));
-            io.to(user.room).emit('newMessage', generateMessage("Admin", `${user.name} has left`));
+            let room = (user.room).toLowerCase();
+            io.to(room).emit('updateUserList', users.getUserList(room));
+            io.to(room).emit('newMessage', generateMessage("Admin", `${user.name} has left`));
         }
     });
 });
-
 
 server.listen(port, () => {
     console.log(`Server is up on port ${port}`);

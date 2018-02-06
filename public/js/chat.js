@@ -23,7 +23,10 @@ socket.on('connect', function (){
             alert(err);
             window.location.href = '/';
         } else {
-            console.log("No error");
+            var ul = $('<ul></ul>');
+            var text = (params.room).toLowerCase();
+            ul.append($('<li></li>').text(text));
+            $('#current-room').html(ul);
         }
     });
 });
